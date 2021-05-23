@@ -6,44 +6,40 @@
 const int kMaxN = 2 * 100000;
 int q[kMaxN + 1];
 int p[kMaxN + 1];
-bool p_map[kMaxN + 1];
+int next[kMaxN + 1];
 int n;
 
-int min_last;
-
-int max_last;
-
-void init() {
-  memset(p_map + 1, 0, n);
-  min_last = 1;
-  max_last = 0; // init by q[0]
-}
-
-int min_choose() {
-  while (p_map[min_last]) {
-    min_last++;
-  }
-  return min_last++;
-}
-
-int max_choose() {
-  while (p_map[max_last]) {
-    max_last--;
-  }
-  return max_last--;
-}
-
-void cal_p(int (*choose)()) {
-  init();
-  int last = -1;
+void cal_max_p() {
+  memset(next, 0, sizeof(int) * (n + 1));
+  int max_limit = 0, the_max = 0;
   for (int i = 1; i <= n; i++) {
-    if (q[i] > last) {
-      last = p[i] = q[i];
-      max_last = q[i] - 1;
+    if (q[i] > max_limit) {
+      next[max_limit] = next[the_max] ? next[the_max] : the_max;
+      max_limit = p[i] = q[i];
+      the_max = q[i] - 1;
     } else {
-      p[i] = choose();
+      if (next[the_max]) {
+        next[max_limit] = next[the_max] ? next[the_max] : the_max;
+        the_max = next[the_max];
+      }
+      p[i] = the_max--;
     }
-    p_map[p[i]] = 1;
+  }
+}
+
+void cal_min_p() {  // next used as a bitmap
+  memset(next, 0, sizeof(int) * (n + 1));
+  int max_limit = 0, the_min = 1;
+  for (int i = 1; i <= n; i++) {
+    if (q[i] > max_limit) {
+      max_limit = p[i] = q[i];
+    } else {
+      while (next[the_min]) {
+        the_min++;
+      }
+      p[i] = the_min++;
+    }
+    next[p[i]] = 1;
   }
 }
 
@@ -63,9 +59,9 @@ int main() {
     for (int i = 1; i <= n; i++) {
       scanf("%d", q + i);
     }
-    cal_p(min_choose);
+    cal_min_p();
     print();
-    cal_p(max_choose);
+    cal_max_p();
     print();
   }
 }
