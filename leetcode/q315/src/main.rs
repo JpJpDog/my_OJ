@@ -127,8 +127,8 @@ impl Solution {
             buf[k..].copy_from_slice(&nums[l1 + j..]);
             map_buf[k..].copy_from_slice(&map[l1 + j..]);
         }
-        nums.swap_with_slice(&mut buf);
-        map.swap_with_slice(&mut map_buf);
+        nums.copy_from_slice(&mut buf);
+        map.copy_from_slice(&mut map_buf);
     }
 
     pub fn count_smaller(mut nums: Vec<i32>) -> Vec<i32> {
