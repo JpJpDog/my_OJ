@@ -1,23 +1,8 @@
-use std::{cmp::Ordering, collections::BinaryHeap};
-
-#[derive(PartialEq, Eq)]
-struct RevI32(i32);
-
-impl PartialOrd for RevI32 {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for RevI32 {
-    fn cmp(&self, other: &Self) -> Ordering {
-        other.0.cmp(&self.0)
-    }
-}
+use std::{cmp::Reverse, collections::BinaryHeap};
 
 struct MedianFinder {
     lo: BinaryHeap<i32>,
-    hi: BinaryHeap<RevI32>,
+    hi: BinaryHeap<Reverse<i32>>,
 }
 
 /**
@@ -27,44 +12,56 @@ struct MedianFinder {
 impl MedianFinder {
     /** initialize your data structure here. */
     fn new() -> Self {
-        let mut lo = BinaryHeap::new();
-        let mut hi = BinaryHeap::new();
-        lo.push(i32::MIN);
-        hi.push(RevI32(i32::MAX));
+        let lo = BinaryHeap::new();
+        let hi = BinaryHeap::new();
+        // lo.push(i32::MIN);
+        // hi.push(Reverse(i32::MAX));
         Self { lo, hi }
     }
 
     fn add_num(&mut self, num: i32) {
-        let lpk = *self.lo.peek().unwrap();
-        let hpk = self.hi.peek().unwrap().0;
-        let lsize = self.lo.len();
-        let hsize = self.hi.len();
-        if num < lpk {
-            if lsize > hsize {
-                self.hi.push(RevI32(self.lo.pop().unwrap()));
-            }
-            self.lo.push(num);
-        } else if num <= hpk {
-            if lsize == hsize {
-                self.lo.push(num);
-            } else {
-                self.hi.push(RevI32(num));
-            }
-        } else {
-            if lsize == hsize {
-                self.lo.push(self.hi.pop().unwrap().0);
-            }
-            self.hi.push(RevI32(num));
+        match self.lo.peek() {
+            Some(lpk) => match self.hi.peek() {
+                Some(Reverse(hpk)) => {
+                    if num < *lpk {
+                        if self.lo.len() > self.hi.len() {
+                            self.hi.push(Reverse(self.lo.pop().unwrap()));
+                        }
+                        self.lo.push(num);
+                    } else if num <= *hpk {
+                        if self.lo.len() == self.hi.len() {
+                            self.lo.push(num);
+                        } else {
+                            self.hi.push(Reverse(num));
+                        }
+                    } else {
+                        if self.lo.len() == self.hi.len() {
+                            self.lo.push(*hpk);
+                            self.hi.pop();
+                        }
+                        self.hi.push(Reverse(num));
+                    }
+                }
+                None => {
+                    if num < *lpk {
+                        self.hi.push(Reverse(self.lo.pop().unwrap()));
+                        self.lo.push(num);
+                    } else {
+                        self.hi.push(Reverse(num));
+                    }
+                }
+            },
+            None => self.lo.push(num),
         }
     }
 
     fn find_median(&self) -> f64 {
-        let lo_peek = self.lo.peek().unwrap();
+        let lpk = self.lo.peek().unwrap();
         if self.lo.len() > self.hi.len() {
-            *lo_peek as f64
+            *lpk as f64
         } else {
-            let hi_peek = self.hi.peek().unwrap().0;
-            (lo_peek + hi_peek) as f64 / 2.0
+            let Reverse(hpk) = self.hi.peek().unwrap().to_owned();
+            (lpk + hpk) as f64 / 2.0
         }
     }
 }
@@ -77,5 +74,10 @@ impl MedianFinder {
  */
 
 fn main() {
-    println!("Hello, world!");
+    let mut finder = MedianFinder::new();
+    finder.add_num(1);
+    finder.add_num(2);
+    println!("{}", finder.find_median());
+    finder.add_num(3);
+    println!("{}", finder.find_median());
 }
