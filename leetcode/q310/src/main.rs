@@ -5,7 +5,7 @@ struct Solution;
 impl Solution {
     pub fn find_min_height_trees(n: i32, edges: Vec<Vec<i32>>) -> Vec<i32> {
         if edges.is_empty() {
-            return vec![1];
+            return vec![0];
         }
         let mut graph = vec![HashSet::new(); n as usize];
         for e in edges {
